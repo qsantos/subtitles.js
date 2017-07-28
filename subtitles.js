@@ -146,12 +146,17 @@ function parse_time(string) {
 function parse_srt(raw_data) {
     // based on WebVTT without header <https://w3c.github.io/webvtt/>
     let blocks = raw_data.split(/(?:\r?\n){2,}/);
-    blocks = blocks.slice(1);  // remove initial "WebVTT" block
-    blocks = blocks.filter(function(x){return x;});  // remove empty blocks
-    let cues = blocks.map(function(cue) {
+    // start at i = 1 to skip initial "WebVTT" block
+    let cues = Array();
+    for (let i = 1; i < blocks.length; i += 1) {
+        let block = blocks[i];
+        if (!block.trim()) {
+            continue;
+        }
+
         // line 1 is timing information (HH:MM:SS,MMM --> HH:MM:SS,MMM)
         // rest is actual subtitle
-        let lines = cue.split(/\r?\n/);
+        let lines = block.split(/\r?\n/);
 
         // locate the cue timings
         let timing_line;
@@ -160,23 +165,26 @@ function parse_srt(raw_data) {
         } else {
             timing_line = 1;
         }
-        if (!lines[timing_line].match(/-->/)) {
-            throw new ParsingError("missing cue timing information");
+        if (!lines[timing_line] || !lines[timing_line].match(/-->/)) {
+            console.warn('invalid cue (continuing previous one?): ', block);
+            cues[cues.length-1].text += '<br>' + lines.join('<br>');
+            continue;
         }
 
         // extract cue timing information
         let parts = lines[timing_line].split(/[ \t]/);
         let start = parse_time(parts[0]);
         if (parts[1] != '-->') {
-            throw new ParsingError('expected "-->"');
+            console.warn('invalid cue: ', block);
+            continue;
         }
         let stop = parse_time(parts[2]);
 
         // extract cue payload text
         let text = lines.slice(timing_line + 1).join('<br>');
 
-        return {start: start, stop: stop, text: text};
-    });
+        cues.push({start: start, stop: stop, text: text});
+    }
     cues.sort(function(a, b) { return a.start - b.start; });
     return cues;
 }
