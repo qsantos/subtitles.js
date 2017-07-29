@@ -34,7 +34,8 @@ $languages = array(
     'ja' => 'Japanese'
 );
 
-$title = 'Listing ' . $path;
+$title = 'Rikaichan friendly subtitles';
+$title .= ' - Listing ' . $path;
 $video = false;
 $poster = false;
 $subtitles = array();
@@ -42,7 +43,7 @@ if (isset($_GET['file'])) {
     $file = $path . '/' . $_GET['file'];
     if (endswith($file, 'webm') || endswith($file, 'mp4')) {
         $video = $file;
-        $title = 'Watching ' . $video;
+        $title .= ' - Watching ' . $video;
         $basename = pathinfo($video, PATHINFO_DIRNAME) . '/' . pathinfo($video, PATHINFO_FILENAME);
         $filename = $basename . '.png';
         if (is_file($filename)) {
