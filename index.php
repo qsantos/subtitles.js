@@ -45,9 +45,12 @@ if (isset($_GET['file'])) {
         $video = $file;
         $title .= ' - Watching ' . $video;
         $basename = pathinfo($video, PATHINFO_DIRNAME) . '/' . pathinfo($video, PATHINFO_FILENAME);
-        $filename = $basename . '.png';
-        if (is_file($filename)) {
-            $poster = $filename;
+        foreach (["jpg", "png"] as $extension) {
+            $filename = $basename . '.' . $extension;
+            if (is_file($filename)) {
+                $poster = $filename;
+                break;
+            }
         }
         foreach ($languages as $code => $label) {
             // first look for vtt
