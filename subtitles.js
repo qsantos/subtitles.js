@@ -266,6 +266,9 @@ function create_subtitles_navigator(context) {
     li_previous.classList.add('subtitle-previous');
     li_previous.innerText = 'Previous subtitle';
     li_previous.addEventListener('click', function() {
+        if (!context.subtitles) {
+            return;
+        }
         var [previous, current, next] =
             get_current_subtitle(context.subtitles, context.video.currentTime);
         if (previous) {
@@ -281,6 +284,9 @@ function create_subtitles_navigator(context) {
     li_next.classList.add('subtitle-next');
     li_next.innerText = 'Next subtitle';
     li_next.addEventListener('click', function() {
+        if (!context.subtitles) {
+            return;
+        }
         var [previous, current, next] =
             get_current_subtitle(context.subtitles, context.video.currentTime);
         if (next) {
