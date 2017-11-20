@@ -30,6 +30,7 @@ What does not (missing features)
 
 * simultaneous subtitles for several languages (displaying several sources)
 * overlapping cues (several cues on the screen)
+* fullscreen (enabling `<video>` fullscreen mode hides the subtitles)
 
 Usage
 -----
