@@ -29,9 +29,9 @@ if (preg_match('!^/|(^|/)\.\.(/|$)!', $path) || !is_dir($path)) {
 }
 $languages = array(
     '' => 'Default',
-    'en' => 'English',
-    'fr' => 'French',
-    'ja' => 'Japanese'
+    'eng' => 'English',
+    'fre' => 'French',
+    'jpn' => 'Japanese',
 );
 
 $title = 'Rikaichan friendly subtitles';
