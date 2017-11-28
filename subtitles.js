@@ -192,7 +192,7 @@ function parse_srt(raw_data) {
 function parse_vtt(raw_data) {
     // strip the header and pass the rest to parse_srt
     let prefix = /^WEBVTT[^\r\n]*(?:\r?\n){1,}/.exec(raw_data);
-    return parse_srt(raw_data.substring(prefix.length));
+    return parse_srt(raw_data.substring(prefix[0].length));
 }
 
 function parse_subtitles(raw_data, hint) {
