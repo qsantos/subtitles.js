@@ -108,12 +108,12 @@ function create_subtitle_context(video) {
     function update_loop() {
         clearTimeout(loop_timer);  // make sure no other loop is running
         let next_change = context.update_subtitle();
-        if (context.video.paused) {
-            context.update_subtitle();
-        } else if (next_change !== null) {
-            let eta = (next_change - video.currentTime) / video.playbackRate;
-            loop_timer = setTimeout(update_loop, eta * 1000);
+        if (context.video.paused || next_change === null) {
+            return;
         }
+        // program next update
+        let eta = (next_change - video.currentTime) / video.playbackRate;
+        loop_timer = setTimeout(update_loop, eta * 1000);
     }
     video.addEventListener('playing', update_loop);
     video.addEventListener('ratechange', update_loop);
