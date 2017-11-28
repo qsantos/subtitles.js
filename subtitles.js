@@ -146,9 +146,8 @@ function parse_time(string) {
 function parse_srt(raw_data) {
     // based on WebVTT without header <https://w3c.github.io/webvtt/>
     let blocks = raw_data.split(/(?:\r?\n){2,}/);
-    // start at i = 1 to skip initial "WebVTT" block
     let cues = Array();
-    for (let i = 1; i < blocks.length; i += 1) {
+    for (let i = 0; i < blocks.length; i += 1) {
         let block = blocks[i];
         if (!block.trim()) {
             continue;
