@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Watching {{ path }}{% endblock %}
+{% block content %}
+
+<video controls preload="auto">
+    <source src="{{ url_for('static', filename=path) }}">
+    {% for code, label, subtitle in subtitles %}
+        <track kind="x-subtitles" srclang="{{ code }}" src="{{ url_for('static', filename=subtitle) }}"{% if label %} label="{{ label }}{% endif %}">
+    {% endfor %}
+</video>
+
+<script src="{{ url_for('static', filename='subtitles.js') }}"></script>
+{% endblock %}

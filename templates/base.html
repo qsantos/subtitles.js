@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>{% block title %}Title{% endblock %}</title>
+<style>
+.video-container {
+    position: relative;
+}
+video {
+    transition-duration: .2s;
+    width:100%;
+    /*max-width: 100vw;*/
+    max-height: calc(100vh - 30px - 4em);
+    display: block;
+    margin:1px auto;
+}
+.subtitle-outer {
+    position: absolute;
+    bottom: 40px;
+    text-align: center;
+    color: #fff;
+    text-shadow: #000 0px 0px 12px;
+    width:100%;
+}
+.subtitle-inner {
+    display: inline-block;
+    background: rgba(0,0,0,.4);
+    font-family: IPAMincho !important;
+    font-size: 46px;
+}
+.subtitle-inner * {
+    font-family: IPAMincho !important;
+}
+.subtitle-selector, .subtitle-navigator {
+    list-style-type: none;
+    display: table;
+    table-layout: fixed;
+    border-collapse: collapse;
+    width: calc(100vw - 150px);
+    margin: 0 auto;
+}
+.subtitle-option, .subtitle-previous, .subtitle-next {
+    display: table-cell;
+    border:1px solid black;
+    height: 2em;
+    text-align: center;
+    vertical-align: middle;
+}
+main {
+    max-width: 50em;
+    margin:0 auto;
+}
+</style>
+{% block content %}
+{% endblock %}

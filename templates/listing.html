@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Browsing {{ path }}{% endblock %}
+{% block content %}
+
+Directories:
+<ul>
+    {% if path.parent != path %}
+        <li><a href="{{ url_for('browse', path=path.parent) }}">..</a></li>
+    {% endif %}
+{% for directory in directories %}
+    <li><a href="{{ url_for('browse', path=directory) }}">{{ directory.name }}/</a></li>
+{% endfor %}
+</ul>
+
+Files:
+<ul>
+{% for file in files %}
+    <li><a href="{{ url_for('browse', path=file) }}">{{ file.name }}</a></li>
+{% endfor %}
+</ul>
+
+{% endblock %}
