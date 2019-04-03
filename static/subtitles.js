@@ -82,6 +82,8 @@ function create_subtitle_context(video) {
 
     let context = {
         'video': video,
+        'tracks': null,
+        'current_track_index': 0,
         'subtitles': null,
         'video_container': video_container,
     };
@@ -206,7 +208,14 @@ function parse_subtitles(raw_data, hint) {
     return null;
 }
 
-function set_subtitles_file(context, filename) {
+function set_subtitles_track(context, track_index) {
+    track_index %= context.tracks.length;
+    context.current_track_index = track_index;
+    localStorage.setItem('track-' + location.pathname, track_index);
+
+    const track = context.tracks[track_index];
+    const filename = track.src;
+
     let xhr = new XMLHttpRequest();
     xhr.open("GET", filename);
     xhr.onreadystatechange = function() {
@@ -225,9 +234,67 @@ function set_subtitles_file(context, filename) {
     xhr.send(null);
 }
 
+function disable_subtitles(context) {
+    context.subtitles = null;
+    context.update_subtitle(context);
+    context.current_track_index = -1;
+}
+
+function set_subtitles_track_default(context) {
+    if (!context.tracks) {
+        return;
+    }
+
+    let saved_track = localStorage.getItem('track-' + location.pathname);
+    if (saved_track !== null) {
+        set_subtitles_track(context, saved_track);
+        return;
+    }
+
+    for (let i = 0; i < context.tracks.length; i += 1) {
+        const track = context.tracks[i];
+        if (track.default) {
+            set_subtitles_track(context, i);
+            return;
+        }
+    }
+    set_subtitles_track(context, 0);
+}
+
+function cycle_subtitles_track(context) {
+    set_subtitles_track(context, context.current_track_index + 1);
+}
+
+function jump_to_previous_subtitle(context) {
+    if (!context.subtitles) {
+        return;
+    }
+    var [previous, current, next] =
+        get_current_subtitle(context.subtitles, context.video.currentTime);
+    if (previous) {
+        context.video.currentTime = previous.start + 1e-9;
+    } else {
+        context.video.currentTime = 0;
+    }
+    context.update_subtitle(context);
+}
+
+function jump_to_next_subtitle(context) {
+    if (!context.subtitles) {
+        return;
+    }
+    var [previous, current, next] =
+        get_current_subtitle(context.subtitles, context.video.currentTime);
+    if (next) {
+        context.video.currentTime = next.start + 1e-9;
+        context.update_subtitle(context);
+    }
+}
+
 function create_subtitles_selector(context) {
     /* When there are alternative subtitles, display a selector */
     let tracks = $$('track[kind=x-subtitles]', context.video);
+    context.tracks = tracks;
     if (tracks.length == 0) {
         return;
     }
@@ -245,76 +312,77 @@ function create_subtitles_selector(context) {
         ul.appendChild(li);
     }
     // available subtitles
-    tracks.forEach(function(track) {
+    for (let i = 0; i < tracks.length; i += 1) {
+        let track = tracks[i];
         let li = document.createElement('li');
         li.classList.add('subtitle-option');
         li.innerText = track.label;
         li.addEventListener('click', function() {
-            set_subtitles_file(context, track.src);
+            set_subtitles_track(context, i);
         });
         ul.appendChild(li);
-    });
-    insertAfter(ul, context.video_container);
+    }
+    context.video_container.appendChild(ul);
 }
 
 function create_subtitles_navigator(context) {
     let ul = document.createElement('ul');
     ul.classList.add('subtitle-navigator');
 
-    let li_previous = document.createElement('li_previous');
+    let li_previous = document.createElement('li');
     li_previous.classList.add('subtitle-previous');
     li_previous.innerText = 'Previous subtitle';
-    li_previous.addEventListener('click', function() {
-        if (!context.subtitles) {
-            return;
-        }
-        var [previous, current, next] =
-            get_current_subtitle(context.subtitles, context.video.currentTime);
-        if (previous) {
-            context.video.currentTime = previous.start;
-        } else {
-            context.video.currentTime = 0;
-        }
-        context.update_subtitle(context);
-    });
+    li_previous.addEventListener('click', event => jump_to_previous_subtitle(context));
     ul.appendChild(li_previous);
 
-    let li_next = document.createElement('li_next');
+    let li_next = document.createElement('li');
     li_next.classList.add('subtitle-next');
     li_next.innerText = 'Next subtitle';
-    li_next.addEventListener('click', function() {
-        if (!context.subtitles) {
-            return;
-        }
-        var [previous, current, next] =
-            get_current_subtitle(context.subtitles, context.video.currentTime);
-        if (next) {
-            context.video.currentTime = next.start;
-            context.update_subtitle(context);
-        }
-    });
+    li_next.addEventListener('click', event => jump_to_next_subtitle(context));
     ul.appendChild(li_next);
 
-    insertAfter(ul, context.video_container);
+    context.video_container.appendChild(ul);
 }
 
-function set_default_subtitles_file(context) {
-    /* Load default subtitles */
-    let default_track = $('track[kind=x-subtitles][default]', context.video);
-    if (!default_track) {
-        default_track = $('track[kind=x-subtitles]', context.video);
-    }
-    if (!default_track) {
+function handle_keypress(context, event) {
+    if (event.ctrlKey || event.altKey || event.metaKey) {
         return;
     }
-    set_subtitles_file(context, default_track.src);
+
+    if (event.key == ' ') {
+        if (context.video.paused) {
+            context.video.play();
+        } else {
+            context.video.pause();
+        }
+    } else if (event.key == 'ArrowLeft') {
+        jump_to_previous_subtitle(context);
+    } else if (event.key == 'ArrowRight') {
+        jump_to_next_subtitle(context);
+    } else if (event.key == 'v') {
+        cycle_subtitles_track(context);
+    } else if (event.key == 'V') {
+        disable_subtitles(context);
+    } else {
+        return;
+    }
+    event.preventDefault();
 }
 
 function enable_all_subtitles(video) {
     let context = create_subtitle_context(video);
-    create_subtitles_selector(context);
     create_subtitles_navigator(context);
-    set_default_subtitles_file(context);
+    create_subtitles_selector(context);
+    set_subtitles_track_default(context);
+
+    const storage_key = 'currentTime-' + location.pathname;
+    context.video.currentTime = localStorage.getItem(storage_key) || 0;
+    context.video.addEventListener('timeupdate', function(event) {
+        localStorage.setItem(storage_key, context.video.currentTime);
+    })
+
+    // TODO
+    window.addEventListener('keydown', event => handle_keypress(context, event));
 }
 
 function main() {

@@ -2,7 +2,7 @@
 {% block title %}Watching {{ path }}{% endblock %}
 {% block content %}
 
-<video controls preload="auto">
+<video controls fullscreen=off" preload="auto">
     <source src="{{ url_for('static', filename=path) }}">
     {% for code, label, subtitle in subtitles %}
         <track kind="x-subtitles" srclang="{{ code }}" src="{{ url_for('static', filename=subtitle) }}"{% if label %} label="{{ label }}{% endif %}">
